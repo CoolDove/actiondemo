@@ -1,8 +1,8 @@
 extends CharacterBody3D
 
 @export var speed = 5.0
-@export var jump_velocity = 4.5
 @export var mouse_sensitivity = 0.002
+@export var rotation_speed = 10.0
 
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
@@ -15,12 +15,16 @@ func _ready():
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _unhandled_input(event):
-	if camera != null:
+	if camera == null:
 		return
 	if event is InputEventMouseMotion:
-		camera_pivot.rotate_y(-event.relative.x * mouse_sensitivity)
-		camera.rotate_x(-event.relative.y * mouse_sensitivity)
-		camera.rotation.x = clamp(camera.rotation.x, deg_to_rad(-60), deg_to_rad(60))
+		var horizontal :float= -event.relative.x * mouse_sensitivity
+		var vertical   :float= -event.relative.y * mouse_sensitivity
+		camera_pivot.global_rotate(Vector3.UP, horizontal)
+		camera_pivot.global_rotate(camera_pivot.basis.x, vertical)
+		var euler := camera_pivot.global_basis.get_euler(EULER_ORDER_YXZ)
+		euler.x = clamp(euler.x, deg_to_rad(-30.0), deg_to_rad(30.0))
+		camera_pivot.global_rotation = euler
 	if event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
@@ -41,7 +45,7 @@ func _physics_process(delta):
 		if direction:
 			velocity.x = direction.x * speed
 			velocity.z = direction.z * speed
-			rotation.y = atan2(direction.x, direction.z)
+			rotation.y = lerp_angle(rotation.y, atan2(direction.x, direction.z), rotation_speed * delta)
 		else:
 			velocity.x = move_toward(velocity.x, 0, speed)
 			velocity.z = move_toward(velocity.z, 0, speed)
