@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://cjsei3nwaphbu"]
+
+[ext_resource type="PackedScene" uid="uid://bu6k5nqv4yt5l" path="res://objects/boy.tscn" id="1_a2i7p"]
+[ext_resource type="Script" uid="uid://cx27jl2jfekuo" path="res://scripts/camera.gd" id="2_gjv8x"]
+
+[node name="ActionScene" type="Node3D" unique_id=458964017]
+
+[node name="CSGBox3D" type="CSGBox3D" parent="." unique_id=79802979]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.26000977, 0)
+use_collision = true
+size = Vector3(10.871094, 0.47998047, 18.58496)
+
+[node name="Boy" parent="." unique_id=410571154 instance=ExtResource("1_a2i7p")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5384158, 0)
+
+[node name="CameraPivot" type="Node3D" parent="." unique_id=575961868]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3787894, 0)
+script = ExtResource("2_gjv8x")
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=1873160512]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1767182214]
+transform = Transform3D(1, 0, 0, 0, 0.5714756, 0.82061905, 0, -0.82061905, 0.5714756, 0, 4.4214287, 0)
