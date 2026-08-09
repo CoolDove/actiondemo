@@ -8,6 +8,10 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var camera_anchor = %CameraAnchor
 
+@onready var model :ChrModel= $Model
+@onready var animer :AnimationPlayer:
+	get: return model.animer
+
 var camera_input : Vector2
 
 #< Should be initialized outside
@@ -30,6 +34,7 @@ func _unhandled_input(event):
 
 func _process(delta):
 	camera_input = Vector2.ZERO
+	animer.play("Armature|Walk")
 
 func _physics_process(delta):
 	if not is_on_floor():

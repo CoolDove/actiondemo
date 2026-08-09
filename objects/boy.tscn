@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cgad7epgwwwbm" path="res://scripts/boy.gd" id="1_pulvw"]
 [ext_resource type="Texture2D" uid="uid://bns2iqj0mewqw" path="res://icon.svg" id="2_y8tr7"]
-[ext_resource type="PackedScene" uid="uid://d13uvbhw4nose" path="res://models/UAL1_Standard.fbx" id="3_vqnak"]
+[ext_resource type="PackedScene" uid="uid://b036bp2t1wise" path="res://models/ual_character.tscn" id="3_pulvw"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_gp7pn"]
 height = 1.8244629
@@ -14,8 +14,7 @@ script = ExtResource("1_pulvw")
 transform = Transform3D(-1, -8.742278e-08, -3.821371e-15, 0, -4.371139e-08, 1, -8.742278e-08, 1, 4.371139e-08, 0, 0.069291085, 0)
 texture = ExtResource("2_y8tr7")
 
-[node name="Visual" parent="." unique_id=1287915649 instance=ExtResource("3_vqnak")]
-transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0, 0, 0)
+[node name="Model" parent="." unique_id=88673691 instance=ExtResource("3_pulvw")]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=313836913]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9197999, 0)
