@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://bjqd8o1tu3g06"
-path="res://.godot/imported/UAL1_Standard_RM.fbx-f222b299b73033ab6978cde03ff530cc.scn"
+path="res://.godot/imported/UAL1_Standard_RM.fbx-291d0ab4b2001b3121e948a66dbc2c53.scn"
 
 [deps]
 
-source_file="res://animation/UAL1_Standard_RM.fbx"
-dest_files=["res://.godot/imported/UAL1_Standard_RM.fbx-f222b299b73033ab6978cde03ff530cc.scn"]
+source_file="res://models/UAL1_Standard_RM.fbx"
+dest_files=["res://.godot/imported/UAL1_Standard_RM.fbx-291d0ab4b2001b3121e948a66dbc2c53.scn"]
 
 [params]
 
