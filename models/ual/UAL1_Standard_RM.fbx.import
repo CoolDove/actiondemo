@@ -1,15 +1,15 @@
 [remap]
 
-importer="scene"
+importer="animation_library"
 importer_version=1
-type="PackedScene"
+type="AnimationLibrary"
 uid="uid://bjqd8o1tu3g06"
-path="res://.godot/imported/UAL1_Standard_RM.fbx-291d0ab4b2001b3121e948a66dbc2c53.scn"
+path="res://.godot/imported/UAL1_Standard_RM.fbx-a04d7f3c2e35ebb83662f6237cc2370b.res"
 
 [deps]
 
-source_file="res://models/UAL1_Standard_RM.fbx"
-dest_files=["res://.godot/imported/UAL1_Standard_RM.fbx-291d0ab4b2001b3121e948a66dbc2c53.scn"]
+source_file="res://models/ual/UAL1_Standard_RM.fbx"
+dest_files=["res://.godot/imported/UAL1_Standard_RM.fbx-a04d7f3c2e35ebb83662f6237cc2370b.res"]
 
 [params]
 
