@@ -62,12 +62,15 @@ func _physics_process(delta):
 		var move_target = 1.0 if move_input else 0.0
 		var move_duration = move_startup_time if move_input else move_stop_time
 		movement_weight = move_toward(movement_weight, move_target, (1.0 / move_duration) * delta)
-		anim_tree.set("parameters/IdleWalk/blend_position", movement_weight)
+		anim_tree.set("parameters/Locomotion/blend_position", movement_weight)
 
 		if move_input:
 			var target_direction = (cam_right * move_input.x + cam_forward * -move_input.y).normalized()
 			var target_angle := atan2(target_direction.x, target_direction.z)
 			rotation.y = lerp_angle(rotation.y, target_angle, rotation_speed * delta * model.prop_rotatable)
+			if model.prop_cancellable_by_move && model.get_current_animattion_state() != "Locomotion":
+				model.get_state_machine().next()
+				print("try move cancel")
 
 		var velocity_y := velocity.y
 		var root_motion_position :Vector3= model.get_root_motion_position()
@@ -75,6 +78,6 @@ func _physics_process(delta):
 		velocity.y = velocity_y
 
 		if input_attack:
-			model.animation_travel("Sword Attack")
+			model.animation_travel("Action")
 			input_attack = false
 	move_and_slide()
