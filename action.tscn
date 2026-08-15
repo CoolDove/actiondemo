@@ -15,6 +15,12 @@ background_mode = 2
 sky = SubResource("Sky_8ov6p")
 ambient_light_source = 3
 
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_osb87"]
+size = Vector2(128, 128)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q37w3"]
+albedo_texture = SubResource("PlaceholderTexture2D_osb87")
+
 [node name="ActionScene" type="Node3D" unique_id=458964017]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=638603724]
@@ -41,6 +47,7 @@ use_collision = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.26000977, 0)
 use_collision = true
 size = Vector3(10.871094, 0.47998047, 18.58496)
+material = SubResource("StandardMaterial3D_q37w3")
 
 [node name="CSGBox3D2" type="CSGBox3D" parent="CSGCombiner3D" unique_id=1926729541]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3988647, 8.39624)

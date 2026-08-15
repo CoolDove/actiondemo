@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://bu6k5nqv4yt5l"]
 
 [ext_resource type="Script" uid="uid://cgad7epgwwwbm" path="res://scripts/boy.gd" id="1_pulvw"]
-[ext_resource type="Texture2D" uid="uid://bns2iqj0mewqw" path="res://icon.svg" id="2_y8tr7"]
 [ext_resource type="PackedScene" uid="uid://b036bp2t1wise" path="res://models/ual/ual_character.tscn" id="3_pulvw"]
+[ext_resource type="Texture2D" uid="uid://cjhvgfrj4k7mi" path="res://textures/arrow.png" id="3_y8tr7"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_gp7pn"]
 height = 1.8244629
@@ -15,7 +15,9 @@ transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0, 0
 
 [node name="Sprite3D" type="Sprite3D" parent="." unique_id=546972569]
 transform = Transform3D(-1, -8.742278e-08, -3.821371e-15, 0, -4.371139e-08, 1, -8.742278e-08, 1, 4.371139e-08, 0, 0.069291085, 0)
-texture = ExtResource("2_y8tr7")
+modulate = Color(1, 1, 1, 0.22352941)
+pixel_size = 0.1
+texture = ExtResource("3_y8tr7")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=313836913]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9197999, 0)
