@@ -66,7 +66,8 @@ func _physics_process(delta):
 
 		if move_input:
 			var target_direction = (cam_right * move_input.x + cam_forward * -move_input.y).normalized()
-			rotation.y = lerp_angle(rotation.y, atan2(target_direction.x, target_direction.z), rotation_speed * delta)
+			var target_angle := atan2(target_direction.x, target_direction.z)
+			rotation.y = lerp_angle(rotation.y, target_angle, rotation_speed * delta * model.prop_rotatable)
 
 		var velocity_y := velocity.y
 		var root_motion_position :Vector3= model.get_root_motion_position()
