@@ -16,6 +16,9 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 var camera_input: Vector2
 var move_input: Vector2
+var movement_weight := 0.0
+
+var input_attack : bool
 
 var camera_pivot: Node3D
 var camera: Camera3D
@@ -36,6 +39,7 @@ func _unhandled_input(event):
 func _process(_delta):
 	camera_input = Vector2.ZERO
 	move_input = Input.get_vector("move_left", "move_right", "move_back", "move_forward")
+	if !input_attack: input_attack = Input.is_action_just_pressed("attack_light")
 
 func _physics_process(delta):
 	if not is_on_floor():
@@ -55,15 +59,21 @@ func _physics_process(delta):
 		cam_right.y = 0
 		cam_right = cam_right.normalized()
 
+		var move_target = 1.0 if move_input else 0.0
+		var move_duration = move_startup_time if move_input else move_stop_time
+		movement_weight = move_toward(movement_weight, move_target, (1.0 / move_duration) * delta)
+		anim_tree.set("parameters/IdleWalk/blend_position", movement_weight)
+
 		if move_input:
-			anim_tree.set("parameters/IdleWalk/blend_position", 1.0)
 			var target_direction = (cam_right * move_input.x + cam_forward * -move_input.y).normalized()
 			rotation.y = lerp_angle(rotation.y, atan2(target_direction.x, target_direction.z), rotation_speed * delta)
-		else:
-			anim_tree.set("parameters/IdleWalk/blend_position", 0.0)
 
 		var velocity_y := velocity.y
 		var root_motion_position :Vector3= model.get_root_motion_position()
 		velocity = root_motion_position / delta
 		velocity.y = velocity_y
+
+		if input_attack:
+			model.animation_travel("Sword Attack")
+			input_attack = false
 	move_and_slide()

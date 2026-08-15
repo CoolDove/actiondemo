@@ -1,6 +1,9 @@
 extends Node3D
 class_name ChrModel
 
+@export var prop_rotatable :float= 0.0
+@export var prop_movable :float= 0.0
+
 @onready var armature :Node3D= %Armature
 @onready var anim_player :AnimationPlayer= %AnimationPlayer
 @onready var anim_tree :AnimationTree= %AnimationTree
@@ -9,6 +12,10 @@ var boneid_root :int
 
 func _ready():
 	boneid_root = skeleton_3d.find_bone("root")
+
+func animation_travel(target: String):
+	var state_machine :AnimationNodeStateMachinePlayback= anim_tree["parameters/playback"]
+	state_machine.travel(target)
 
 func get_root_motion_position() -> Vector3:
 	return armature.global_transform.basis * anim_tree.get_root_motion_position()

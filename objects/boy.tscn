@@ -9,6 +9,7 @@ height = 1.8244629
 
 [node name="Boy" type="CharacterBody3D" unique_id=410571154]
 script = ExtResource("1_pulvw")
+move_startup_time = 0.12
 
 [node name="Model" parent="." unique_id=88673691 instance=ExtResource("3_pulvw")]
 transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0, 0, 0)
