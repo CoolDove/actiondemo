@@ -70,7 +70,6 @@ func _physics_process(delta):
 			rotation.y = lerp_angle(rotation.y, target_angle, rotation_speed * delta * model.prop_rotatable)
 			if model.prop_cancellable_by_move && model.get_current_animattion_state() != "Locomotion":
 				model.get_state_machine().next()
-				print("try move cancel")
 
 		var velocity_y := velocity.y
 		var root_motion_position :Vector3= model.get_root_motion_position()
