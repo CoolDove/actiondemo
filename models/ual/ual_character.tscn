@@ -280,6 +280,7 @@ transform = Transform3D(-2.3130911e-15, 4.3711395e-08, 1, 1, -4.371139e-08, 1.35
 unique_name_in_owner = true
 root_motion_track = NodePath("Armature/Skeleton3D:root")
 root_motion_local = true
+callback_mode_process = 0
 libraries/ = SubResource("AnimationLibrary_osb87")
 libraries/UAL1_Standard_RM = ExtResource("3_q37w3")
 
@@ -287,6 +288,7 @@ libraries/UAL1_Standard_RM = ExtResource("3_q37w3")
 unique_name_in_owner = true
 root_node = NodePath("%AnimationTree/..")
 root_motion_track = NodePath("Armature/Skeleton3D:root")
+callback_mode_process = 0
 tree_root = SubResource("AnimationNodeStateMachine_pulvw")
 anim_player = NodePath("../AnimationPlayer")
 parameters/Locomotion/blend_position = 0.0
