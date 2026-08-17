@@ -34994,7 +34994,7 @@ _subresources={
 "slices/amount": 0
 },
 "Armature|Sword_Attack": {
-"save_to_file/enabled": true,
+"save_to_file/enabled": false,
 "save_to_file/fallback_path": "res://models/ual/custom_animations/basic_attack.anim",
 "save_to_file/keep_custom_tracks": true,
 "save_to_file/path": "uid://c6eo6e07yietg",

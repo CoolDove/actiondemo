@@ -1,5 +1,12 @@
 [gd_scene format=3 uid="uid://c2kbgr5fc6snc"]
 
 [ext_resource type="PackedScene" uid="uid://dsctmh058d1b5" path="res://models/character/killer.blend" id="1_5mdqh"]
+[ext_resource type="Script" uid="uid://lwrnsq0vuxh" path="res://models/chr_model.gd" id="2_ar7jg"]
+[ext_resource type="AnimationLibrary" uid="uid://cyfjd3sd4amko" path="res://models/character/kill_actionim_library.tres" id="3_uk1wu"]
 
 [node name="killer" unique_id=737066837 instance=ExtResource("1_5mdqh")]
+script = ExtResource("2_ar7jg")
+prop_cancellable_by_move = true
+
+[node name="AnimationPlayer" parent="." index="1" unique_id=1878537546]
+libraries/kill_actionim_library = ExtResource("3_uk1wu")
