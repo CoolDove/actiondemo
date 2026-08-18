@@ -107,15 +107,15 @@ size_flags_vertical = 3
 script = SubResource("GDScript_aktion")
 
 [node name="PlayerLabel" type="Label" parent="." unique_id=898479359]
-custom_minimum_size = Vector2(64, 0)
+custom_minimum_size = Vector2(20, 0)
 layout_mode = 2
 autowrap_mode = 3
 
-[node name="TargetLabel" type="Label" parent="."]
+[node name="TargetLabel" type="Label" parent="." unique_id=309932023]
 layout_mode = 2
 text = "目标动画"
 
-[node name="TargetOption" type="OptionButton" parent="."]
+[node name="TargetOption" type="OptionButton" parent="." unique_id=39126667]
 layout_mode = 2
 
 [node name="HSeparator" type="HSeparator" parent="." unique_id=1298945322]
@@ -141,6 +141,6 @@ layout_mode = 2
 text = "复制 Tracks"
 
 [node name="StatusLabel" type="Label" parent="." unique_id=330737925]
-custom_minimum_size = Vector2(64, 0)
+custom_minimum_size = Vector2(20, 0)
 layout_mode = 2
 autowrap_mode = 3

@@ -8266,7 +8266,7 @@ _subresources={
 "slices/amount": 0
 },
 "Armature|Idle": {
-"save_to_file/enabled": true,
+"save_to_file/enabled": false,
 "save_to_file/fallback_path": "res://models/ual/custom_animations/idle.anim",
 "save_to_file/keep_custom_tracks": true,
 "save_to_file/path": "uid://2w6hmps8qpj5",
@@ -28826,7 +28826,7 @@ _subresources={
 "slices/amount": 0
 },
 "Armature|Sprint": {
-"save_to_file/enabled": true,
+"save_to_file/enabled": false,
 "save_to_file/fallback_path": "res://models/ual/custom_animations/sprint.anim",
 "save_to_file/keep_custom_tracks": true,
 "save_to_file/path": "uid://cjqolwqh77gsi",
