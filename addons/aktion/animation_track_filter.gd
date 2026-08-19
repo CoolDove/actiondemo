@@ -67,13 +67,13 @@ func _mark_dirty():
 func _refresh():
 	_clear_list()
 	if _animation == null:
-		count_label.text = '0 个 track'
+		count_label.text = '0'
 		return
 	var filter = get_filter()
 	var regex = get_regex()
 	var case_sensitive = get_case_sensitive()
 	if regex and not filter.is_empty() and not _is_valid_regex(filter, case_sensitive):
-		count_label.text = '正则无效'
+		count_label.text = 'Invalid Regex'
 		return
 	var matched = 0
 	for i in _animation.get_track_count():
@@ -82,7 +82,7 @@ func _refresh():
 			label.text = str(_animation.track_get_path(i))
 			track_list.add_child(label)
 			matched += 1
-	count_label.text = '%d / %d 个 track' % [matched, _animation.get_track_count()]
+	count_label.text = '%d /%d' % [matched, _animation.get_track_count()]
 
 func _is_valid_regex(filter: String, case_sensitive: bool) -> bool:
 	var re = RegEx.new()

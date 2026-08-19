@@ -3,15 +3,13 @@ extends VBoxContainer
 
 var editor_plugin: EditorPlugin
 var target_player: AnimationPlayer
+var target_animation: String = ""
 var _last_copied = 0
 var _last_deleted = 0
 var _dirty = true
 
 @onready var player_label: Label = %PlayerLabel
-@onready var tabs: TabContainer = %Tabs
 @onready var source_option: OptionButton = %SourceOption
-@onready var target_option: OptionButton = %TargetOption
-@onready var delete_target_option: OptionButton = %DeleteTargetOption
 @onready var source_filter: AnimationTrackFilter = %SourceFilter
 @onready var delete_filter: AnimationTrackFilter = %DeleteFilter
 
@@ -21,12 +19,24 @@ func setup(plugin: EditorPlugin):
 	%OverwriteButton.pressed.connect(_on_overwrite_pressed)
 	%DeleteButton.pressed.connect(_on_delete_pressed)
 	%SourceOption.item_selected.connect(_on_source_changed)
-	%DeleteTargetOption.item_selected.connect(_on_delete_target_changed)
 	_mark_dirty()
 
 func set_target_player(player: AnimationPlayer):
 	target_player = player
 	_mark_dirty()
+
+func set_target_animation(name: String):
+	target_animation = name
+	_update_label()
+	_update_delete_filter()
+
+func _update_label():
+	if target_player == null:
+		player_label.text = '未选中 AnimationPlayer'
+	elif target_animation.is_empty():
+		player_label.text = '目标: ' + target_player.name
+	else:
+		player_label.text = '目标: ' + target_player.name + ' → ' + target_animation
 
 func _process(_delta):
 	if _dirty:
@@ -38,35 +48,22 @@ func _mark_dirty():
 
 func _refresh():
 	if target_player == null:
-		player_label.text = '未选中 AnimationPlayer'
+		_update_label()
 		source_option.clear()
-		target_option.clear()
-		delete_target_option.clear()
 		source_filter.set_animation(null)
 		delete_filter.set_animation(null)
 		return
-	player_label.text = '目标: ' + target_player.name
+	_update_label()
 	source_option.clear()
-	target_option.clear()
-	delete_target_option.clear()
 	for animation_name in target_player.get_animation_list():
 		source_option.add_item(animation_name)
-		target_option.add_item(animation_name)
-		delete_target_option.add_item(animation_name)
 	if source_option.item_count > 0:
 		source_option.selected = 0
-	if target_option.item_count > 0:
-		target_option.selected = 0
-	if delete_target_option.item_count > 0:
-		delete_target_option.selected = 0
 	_update_source_filter()
 	_update_delete_filter()
 
 func _on_source_changed(_index: int):
 	_update_source_filter()
-
-func _on_delete_target_changed(_index: int):
-	_update_delete_filter()
 
 func _update_source_filter():
 	if target_player == null or source_option.selected < 0:
@@ -76,11 +73,10 @@ func _update_source_filter():
 	source_filter.set_animation(target_player.get_animation(name))
 
 func _update_delete_filter():
-	if target_player == null or delete_target_option.selected < 0:
+	if target_player == null or target_animation.is_empty():
 		delete_filter.set_animation(null)
 		return
-	var name = delete_target_option.get_item_text(delete_target_option.selected)
-	delete_filter.set_animation(target_player.get_animation(name))
+	delete_filter.set_animation(target_player.get_animation(target_animation))
 
 func _get_selected_player() -> AnimationPlayer:
 	var selection = editor_plugin.get_editor_interface().get_selection()
@@ -100,15 +96,14 @@ func _do_copy(overwrite: bool):
 	if player == null:
 		player_label.text = '请先选中场景中的 AnimationPlayer 节点'
 		return
-	if target_option.selected < 0:
-		player_label.text = '没有可用的目标动画'
+	if target_animation.is_empty():
+		player_label.text = '请先在动画编辑器中选择目标动画'
 		return
-	var target_name = target_option.get_item_text(target_option.selected)
 	if source_option.selected < 0:
 		player_label.text = '没有可用的源动画'
 		return
 	var source_name = source_option.get_item_text(source_option.selected)
-	var target = player.get_animation(target_name)
+	var target = player.get_animation(target_animation)
 	var source = player.get_animation(source_name)
 	if target == null or source == null:
 		player_label.text = '无法获取动画资源'
@@ -122,14 +117,14 @@ func _do_copy(overwrite: bool):
 	var backup = _snapshot_animation(target)
 	var undo_redo = editor_plugin.get_undo_redo()
 	var verb = '覆盖' if overwrite else '复制'
-	undo_redo.create_action(verb + ' Tracks 到 ' + str(target_name), 0, player)
+	undo_redo.create_action(verb + ' Tracks 到 ' + str(target_animation), 0, player)
 	undo_redo.add_do_method(self, '_do_copy_tracks', target, source, filter, regex, case_sensitive, overwrite)
 	undo_redo.add_undo_method(self, '_restore_animation', target, backup)
 	undo_redo.commit_action()
 	editor_plugin.get_editor_interface().mark_scene_as_unsaved()
 	player_label.text = ('已' + verb + ' %d 个 track') % _last_copied
 	_update_delete_filter()
-	_refresh_animation_editor(player, target_name)
+	_refresh_animation_editor(player, target_animation)
 
 func _do_copy_tracks(target: Animation, source: Animation, filter: String, regex: bool, case_sensitive: bool, overwrite: bool):
 	if overwrite:
@@ -152,11 +147,10 @@ func _on_delete_pressed():
 	if player == null:
 		player_label.text = '请先选中场景中的 AnimationPlayer 节点'
 		return
-	if delete_target_option.selected < 0:
-		player_label.text = '没有可用的目标动画'
+	if target_animation.is_empty():
+		player_label.text = '请先在动画编辑器中选择目标动画'
 		return
-	var target_name = delete_target_option.get_item_text(delete_target_option.selected)
-	var target = player.get_animation(target_name)
+	var target = player.get_animation(target_animation)
 	if target == null:
 		player_label.text = '无法获取动画资源'
 		return
@@ -172,14 +166,14 @@ func _on_delete_pressed():
 		return
 	var backup = _snapshot_animation(target)
 	var undo_redo = editor_plugin.get_undo_redo()
-	undo_redo.create_action('删除 Tracks 从 ' + str(target_name), 0, player)
+	undo_redo.create_action('删除 Tracks 从 ' + str(target_animation), 0, player)
 	undo_redo.add_do_method(self, '_do_delete_tracks', target, filter, regex, case_sensitive)
 	undo_redo.add_undo_method(self, '_restore_animation', target, backup)
 	undo_redo.commit_action()
 	editor_plugin.get_editor_interface().mark_scene_as_unsaved()
 	player_label.text = '已删除 %d 个 track' % _last_deleted
 	_update_delete_filter()
-	_refresh_animation_editor(player, target_name)
+	_refresh_animation_editor(player, target_animation)
 
 func _do_delete_tracks(target: Animation, filter: String, regex: bool, case_sensitive: bool):
 	var removed = 0

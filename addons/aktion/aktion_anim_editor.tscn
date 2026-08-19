@@ -22,11 +22,12 @@ autowrap_mode = 3
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-current_tab = 0
+current_tab = 1
 tab_0/title = "> 复制"
 tab_1/title = "> 删除"
 
 [node name="CopyTab" type="VBoxContainer" parent="Tabs" unique_id=210000002]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 metadata/_tab_name = "> 复制"
@@ -50,18 +51,6 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="DestinationAnimation" type="VBoxContainer" parent="Tabs/CopyTab" unique_id=1982538879]
-layout_mode = 2
-size_flags_vertical = 0
-
-[node name="TargetLabel" type="Label" parent="Tabs/CopyTab/DestinationAnimation" unique_id=309932023]
-layout_mode = 2
-text = "目标动画"
-
-[node name="TargetOption" type="OptionButton" parent="Tabs/CopyTab/DestinationAnimation" unique_id=39126667]
-unique_name_in_owner = true
-layout_mode = 2
-
 [node name="Actions" type="HBoxContainer" parent="Tabs/CopyTab" unique_id=1440929377]
 layout_mode = 2
 size_flags_vertical = 8
@@ -80,7 +69,6 @@ size_flags_horizontal = 3
 text = "覆盖"
 
 [node name="DeleteTab" type="VBoxContainer" parent="Tabs" unique_id=210000004]
-visible = false
 layout_mode = 2
 metadata/_tab_index = 1
 metadata/_tab_name = "> 删除"
@@ -88,14 +76,6 @@ metadata/_tab_name = "> 删除"
 [node name="DeleteAnimation" type="VBoxContainer" parent="Tabs/DeleteTab" unique_id=210000005]
 layout_mode = 2
 size_flags_vertical = 3
-
-[node name="DeleteTargetLabel" type="Label" parent="Tabs/DeleteTab/DeleteAnimation" unique_id=210000006]
-layout_mode = 2
-text = "目标动画"
-
-[node name="DeleteTargetOption" type="OptionButton" parent="Tabs/DeleteTab/DeleteAnimation" unique_id=210000007]
-unique_name_in_owner = true
-layout_mode = 2
 
 [node name="DeleteFilter" parent="Tabs/DeleteTab/DeleteAnimation" unique_id=210000008 instance=ExtResource("2_filter")]
 unique_name_in_owner = true

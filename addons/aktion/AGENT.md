@@ -7,7 +7,7 @@ Godot 编辑器插件，提供 AnimationPlayer 的动画 track 批处理工具�
 | 路径 | 职责 |
 |------|------|
 | `plugin.cfg` | 插件声明。`script=aktion_plugin.gd` |
-| `aktion_plugin.gd` | 插件入口（`EditorPlugin`）：实例化面板、停靠、`_handles`/`_edit` 绑定选中的 AnimationPlayer |
+| `aktion_plugin.gd` | 插件入口（`EditorPlugin`）：实例化面板、停靠、`_handles`/`_edit` 绑定选中的 AnimationPlayer；查找内置 AnimationPlayerEditor 与其动画下拉，同步当前编辑动画 |
 | `aktion_anim_editor.gd` | 主面板逻辑（复制/覆盖/删除、撤销、动画列表刷新） |
 | `aktion_anim_editor.tscn` | 主面板 UI：PlayerLabel + TabContainer(复制/删除) |
 | `animation_track_filter.gd` | 可复用组件 `AnimationTrackFilter`：路径过滤输入 + 匹配 track 列表 |
@@ -19,18 +19,20 @@ Godot 编辑器插件，提供 AnimationPlayer 的动画 track 批处理工具�
 ## 架构与数据流
 
 ### 插件生命周期
-1. `aktion_plugin.gd::_enter_tree` → `preload(...tscn).instantiate()` → `_anim_editor.setup(self)` → `add_control_to_dock(DOCK_SLOT_LEFT_BL, ...)`。
-2. 用户选中 AnimationPlayer → `_edit(object)` → `_anim_editor.set_target_player(object)`。
-3. `_exit_tree` 卸载面板并 `queue_free`。
+1. `aktion_plugin.gd::_enter_tree` → `preload(...tscn).instantiate()` → `_anim_editor.setup(self)` → `add_control_to_dock(DOCK_SLOT_LEFT_BR, ...)`。
+2. `_enter_tree` 里从 `get_editor_interface().get_base_control()` 出发，按类名 `AnimationPlayerEditor` 找到内置动画面板，再从中找到动画选择下拉（工具栏里第一个 `OptionButton`）。
+3. 用户选中 AnimationPlayer → `_edit(object)` → `_anim_editor.set_target_player(object)` + `call_deferred("push_current_animation")`（把动画下拉当前选中的动画名推给面板）。
+4. 连接 `AnimationPlayerEditor` 的 `animation_selected` 信号（参数为动画名 String）→ `_anim_editor.set_target_animation(name)`，实现「保持同步」。
+5. `_exit_tree` 卸载面板并 `queue_free`。
 
 注意：`setup()` 在 `add_control_to_dock` 之前调用，此时节点尚未进入场景树，`@onready` 变量为 null。所以 `setup()` 里只能用 `%Node` 直接连信号（get_node 立即可用），不能碰 `@onready` 变量；刷新一律走脏标记延迟到 `_process`。
 
 ### 主面板 `aktion_anim_editor.gd`
-- 根节点 `VBoxContainer`，`@tool`。持有 `editor_plugin` 和 `target_player`。
-- 结构：`PlayerLabel` → `Tabs`(TabContainer，`size_flags_vertical=3`)。状态反馈（选中提示/操作结果/错误）直接写 `PlayerLabel`，下次 `_refresh` 再被「目标: X」覆盖。
-  - `CopyTab`：`SourceAnimation`(SourceLabel/SourceOption/SourceFilter) + `DestinationAnimation`(TargetLabel/TargetOption) + `Actions`(CopyButton/OverwriteButton)。
-  - `DeleteTab`：`DeleteAnimation`(DeleteTargetLabel/DeleteTargetOption/DeleteFilter) + `DeleteActions`(DeleteButton)。
-- 两个 tab 的中文标题在 `_ready()` 里用 `tabs.set_tab_title(0/1, ...)` 运行时设置（原因见「坑」）。
+- 根节点 `VBoxContainer`，`@tool`。持有 `editor_plugin`、`target_player` 和 `target_animation`（目标动画名，由插件从动画编辑器推入）。
+- 结构：`PlayerLabel` → `Tabs`(TabContainer，`size_flags_vertical=3`)。状态反馈（选中提示/操作结果/错误）直接写 `PlayerLabel`，下次 `_refresh` 再被「目标: X → Y」覆盖。
+  - `CopyTab`：`SourceAnimation`(SourceLabel/SourceOption/SourceFilter) + `Actions`(CopyButton/OverwriteButton)。
+  - `DeleteTab`：`DeleteAnimation`(DeleteFilter) + `DeleteActions`(DeleteButton)。
+- 复制/删除的**目标动画不再有独立下拉**，锁定为动画编辑器当前选中的动画（`target_animation`）。tab 标题在 `.tscn` 里用 `tab_0/title` 直接写（中文放在属性值里，见「坑」）。
 
 ### 可复用组件 `AnimationTrackFilter`
 - `class_name AnimationTrackFilter extends VBoxContainer`。
@@ -41,8 +43,8 @@ Godot 编辑器插件，提供 AnimationPlayer 的动画 track 批处理工具�
 - 列表动态生成 `Label`（无 owner，不会写入 .tscn），每次 `_refresh` 先 `_clear_list()` 再重建。
 
 ### 核心功能
-- **复制 / 覆盖**（`_do_copy(overwrite)`）：源动画 = `source_option`，目标动画 = `target_option`，过滤参数来自 `source_filter.get_filter()/get_regex()/get_case_sensitive()`。覆盖模式下先把目标动画中与源 track 同路径（同名）的 track 删掉再复制。
-- **删除**（`_on_delete_pressed`）：目标动画 = `delete_target_option`，过滤参数来自 `delete_filter.get_filter()/get_regex()/get_case_sensitive()`，反向遍历删除匹配 track（避免索引偏移）。
+- **复制 / 覆盖**（`_do_copy(overwrite)`）：源动画 = `source_option`，目标动画 = `target_animation`（动画编辑器选中的动画），过滤参数来自 `source_filter.get_filter()/get_regex()/get_case_sensitive()`。覆盖模式下先把目标动画中与源 track 同路径（同名）的 track 删掉再复制。
+- **删除**（`_on_delete_pressed`）：目标动画 = `target_animation`，过滤参数来自 `delete_filter.get_filter()/get_regex()/get_case_sensitive()`，反向遍历删除匹配 track（避免索引偏移）。
 - **撤销**：操作前对目标动画做整份快照 `_snapshot_animation`（`Animation.new()` + 逐个 `copy_track`），`add_undo_method(_restore_animation, target, backup)` 通过清空 + 重拷还原，保证 track 顺序与内容都恢复。do 方法通过 `undo_redo.add_do_method` 传参（`filter`/`regex`/`case_sensitive`/`overwrite` 等可序列化值），重做时重新计算匹配。
 - `PlayerLabel` 用 `_last_copied` / `_last_deleted` 记录最近一次数量；操作后 `mark_scene_as_unsaved()` + `_refresh_animation_editor()`（`set_current_animation('')` 再设回，刷新动画编辑器显示）。
 
@@ -64,6 +66,7 @@ Godot 编辑器插件，提供 AnimationPlayer 的动画 track 批处理工具�
 3. `unique_name_in_owner`（`%` 访问）+ `unique_id` 是 Godot 4.7 场景格式；手动编辑 `.tscn` 时新节点要分配不与同场景冲突的 `unique_id`。
 4. 实例化子场景的节点写法：`[node name="X" parent="..." unique_id=N instance=ExtResource("id")]`，根节点名会被 `name=` 覆盖。
 5. 静态匹配逻辑只有 `AnimationTrackFilter.matches_path` 一份，新增「按 path 过滤」的功能要复用它，不要另写 `_track_matches` 之类的重复实现。
+6. 访问内置动画面板属编辑器内部 API：节点名是 `Animation`，类名 `AnimationPlayerEditor`，用 `find_children("*", "AnimationPlayerEditor", true, false)` 按类名找（`owned=false` 必须，编辑器 UI 节点无 owner）。动画选择下拉是它工具栏里**第一个** `OptionButton`（其余 OptionButton 都在 AnimationTrackEditor 关键帧面板里）。其 `animation_selected` 信号带动画名 String 参数，只在非 `updating` 时发出（切玩家等程序化选择不发）。
 
 ## 代码风格
 - 只改最小文件集；任务过大先与用户讨论拆分。
