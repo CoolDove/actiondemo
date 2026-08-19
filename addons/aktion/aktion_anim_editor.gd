@@ -14,7 +14,6 @@ var _dirty = true
 @onready var delete_target_option: OptionButton = %DeleteTargetOption
 @onready var source_filter: AnimationTrackFilter = %SourceFilter
 @onready var delete_filter: AnimationTrackFilter = %DeleteFilter
-@onready var status_label: Label = %StatusLabel
 
 func setup(plugin: EditorPlugin):
 	editor_plugin = plugin
@@ -99,23 +98,23 @@ func _on_overwrite_pressed():
 func _do_copy(overwrite: bool):
 	var player = _get_selected_player()
 	if player == null:
-		status_label.text = '请先选中场景中的 AnimationPlayer 节点'
+		player_label.text = '请先选中场景中的 AnimationPlayer 节点'
 		return
 	if target_option.selected < 0:
-		status_label.text = '没有可用的目标动画'
+		player_label.text = '没有可用的目标动画'
 		return
 	var target_name = target_option.get_item_text(target_option.selected)
 	if source_option.selected < 0:
-		status_label.text = '没有可用的源动画'
+		player_label.text = '没有可用的源动画'
 		return
 	var source_name = source_option.get_item_text(source_option.selected)
 	var target = player.get_animation(target_name)
 	var source = player.get_animation(source_name)
 	if target == null or source == null:
-		status_label.text = '无法获取动画资源'
+		player_label.text = '无法获取动画资源'
 		return
 	if target == source:
-		status_label.text = '源动画与目标动画相同'
+		player_label.text = '源动画与目标动画相同'
 		return
 	var filter = source_filter.get_filter()
 	var regex = source_filter.get_regex()
@@ -128,7 +127,7 @@ func _do_copy(overwrite: bool):
 	undo_redo.add_undo_method(self, '_restore_animation', target, backup)
 	undo_redo.commit_action()
 	editor_plugin.get_editor_interface().mark_scene_as_unsaved()
-	status_label.text = ('已' + verb + ' %d 个 track') % _last_copied
+	player_label.text = ('已' + verb + ' %d 个 track') % _last_copied
 	_update_delete_filter()
 	_refresh_animation_editor(player, target_name)
 
@@ -151,15 +150,15 @@ func _do_copy_tracks(target: Animation, source: Animation, filter: String, regex
 func _on_delete_pressed():
 	var player = _get_selected_player()
 	if player == null:
-		status_label.text = '请先选中场景中的 AnimationPlayer 节点'
+		player_label.text = '请先选中场景中的 AnimationPlayer 节点'
 		return
 	if delete_target_option.selected < 0:
-		status_label.text = '没有可用的目标动画'
+		player_label.text = '没有可用的目标动画'
 		return
 	var target_name = delete_target_option.get_item_text(delete_target_option.selected)
 	var target = player.get_animation(target_name)
 	if target == null:
-		status_label.text = '无法获取动画资源'
+		player_label.text = '无法获取动画资源'
 		return
 	var filter = delete_filter.get_filter()
 	var regex = delete_filter.get_regex()
@@ -169,7 +168,7 @@ func _on_delete_pressed():
 		if AnimationTrackFilter.matches_path(target.track_get_path(i), filter, regex, case_sensitive):
 			matched += 1
 	if matched == 0:
-		status_label.text = '没有匹配的 track'
+		player_label.text = '没有匹配的 track'
 		return
 	var backup = _snapshot_animation(target)
 	var undo_redo = editor_plugin.get_undo_redo()
@@ -178,7 +177,7 @@ func _on_delete_pressed():
 	undo_redo.add_undo_method(self, '_restore_animation', target, backup)
 	undo_redo.commit_action()
 	editor_plugin.get_editor_interface().mark_scene_as_unsaved()
-	status_label.text = '已删除 %d 个 track' % _last_deleted
+	player_label.text = '已删除 %d 个 track' % _last_deleted
 	_update_delete_filter()
 	_refresh_animation_editor(player, target_name)
 

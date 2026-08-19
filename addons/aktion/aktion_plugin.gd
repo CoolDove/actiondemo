@@ -6,7 +6,8 @@ var _anim_editor
 func _enter_tree():
 	_anim_editor = preload("res://addons/aktion/aktion_anim_editor.tscn").instantiate()
 	_anim_editor.setup(self)
-	add_control_to_dock(DOCK_SLOT_LEFT_BL, _anim_editor)
+	add_control_to_dock(DOCK_SLOT_LEFT_BR, _anim_editor)
+	var editor := get_editor_interface().get_base_control()
 
 func _exit_tree():
 	remove_control_from_docks(_anim_editor)

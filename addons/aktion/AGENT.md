@@ -9,7 +9,7 @@ Godot 编辑器插件，提供 AnimationPlayer 的动画 track 批处理工具�
 | `plugin.cfg` | 插件声明。`script=aktion_plugin.gd` |
 | `aktion_plugin.gd` | 插件入口（`EditorPlugin`）：实例化面板、停靠、`_handles`/`_edit` 绑定选中的 AnimationPlayer |
 | `aktion_anim_editor.gd` | 主面板逻辑（复制/覆盖/删除、撤销、动画列表刷新） |
-| `aktion_anim_editor.tscn` | 主面板 UI：PlayerLabel + TabContainer(复制/删除) + StatusLabel |
+| `aktion_anim_editor.tscn` | 主面板 UI：PlayerLabel + TabContainer(复制/删除) |
 | `animation_track_filter.gd` | 可复用组件 `AnimationTrackFilter`：路径过滤输入 + 匹配 track 列表 |
 | `animation_track_filter.tscn` | 组件 UI：FilterLabel + FilterEdit + CheckBox_Regex/CheckBox_CaseSensitive + CountLabel + ScrollContainer/TrackList |
 | `aktion_animation.gd` | `class_name AktionAnimation extends Animation`，自定义动画资源类型占位（暂无逻辑） |
@@ -27,7 +27,7 @@ Godot 编辑器插件，提供 AnimationPlayer 的动画 track 批处理工具�
 
 ### 主面板 `aktion_anim_editor.gd`
 - 根节点 `VBoxContainer`，`@tool`。持有 `editor_plugin` 和 `target_player`。
-- 结构：`PlayerLabel` → `Tabs`(TabContainer，`size_flags_vertical=3`) → `StatusLabel`。
+- 结构：`PlayerLabel` → `Tabs`(TabContainer，`size_flags_vertical=3`)。状态反馈（选中提示/操作结果/错误）直接写 `PlayerLabel`，下次 `_refresh` 再被「目标: X」覆盖。
   - `CopyTab`：`SourceAnimation`(SourceLabel/SourceOption/SourceFilter) + `DestinationAnimation`(TargetLabel/TargetOption) + `Actions`(CopyButton/OverwriteButton)。
   - `DeleteTab`：`DeleteAnimation`(DeleteTargetLabel/DeleteTargetOption/DeleteFilter) + `DeleteActions`(DeleteButton)。
 - 两个 tab 的中文标题在 `_ready()` 里用 `tabs.set_tab_title(0/1, ...)` 运行时设置（原因见「坑」）。
@@ -44,7 +44,7 @@ Godot 编辑器插件，提供 AnimationPlayer 的动画 track 批处理工具�
 - **复制 / 覆盖**（`_do_copy(overwrite)`）：源动画 = `source_option`，目标动画 = `target_option`，过滤参数来自 `source_filter.get_filter()/get_regex()/get_case_sensitive()`。覆盖模式下先把目标动画中与源 track 同路径（同名）的 track 删掉再复制。
 - **删除**（`_on_delete_pressed`）：目标动画 = `delete_target_option`，过滤参数来自 `delete_filter.get_filter()/get_regex()/get_case_sensitive()`，反向遍历删除匹配 track（避免索引偏移）。
 - **撤销**：操作前对目标动画做整份快照 `_snapshot_animation`（`Animation.new()` + 逐个 `copy_track`），`add_undo_method(_restore_animation, target, backup)` 通过清空 + 重拷还原，保证 track 顺序与内容都恢复。do 方法通过 `undo_redo.add_do_method` 传参（`filter`/`regex`/`case_sensitive`/`overwrite` 等可序列化值），重做时重新计算匹配。
-- 状态栏用 `_last_copied` / `_last_deleted` 记录最近一次数量；操作后 `mark_scene_as_unsaved()` + `_refresh_animation_editor()`（`set_current_animation('')` 再设回，刷新动画编辑器显示）。
+- `PlayerLabel` 用 `_last_copied` / `_last_deleted` 记录最近一次数量；操作后 `mark_scene_as_unsaved()` + `_refresh_animation_editor()`（`set_current_animation('')` 再设回，刷新动画编辑器显示）。
 
 ## 关键约定与模式
 
