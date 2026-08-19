@@ -4,6 +4,7 @@ extends VBoxContainer
 var editor_plugin: EditorPlugin
 var target_player: AnimationPlayer
 var _last_copied = 0
+var _dirty = true
 
 @onready var player_label: Label = %PlayerLabel
 @onready var target_option: OptionButton = %TargetOption
@@ -14,11 +15,20 @@ var _last_copied = 0
 func setup(plugin: EditorPlugin):
 	editor_plugin = plugin
 	%CopyButton.pressed.connect(_on_copy_pressed)
-	_refresh()
+	%OverwriteButton.pressed.connect(_on_overwrite_pressed)
+	_mark_dirty()
 
 func set_target_player(player: AnimationPlayer):
 	target_player = player
-	_refresh()
+	_mark_dirty()
+
+func _process(_delta):
+	if _dirty:
+		_dirty = false
+		_refresh()
+
+func _mark_dirty():
+	_dirty = true
 
 func _refresh():
 	if target_player == null:
@@ -41,6 +51,12 @@ func _get_selected_player() -> AnimationPlayer:
 	return target_player
 
 func _on_copy_pressed():
+	_do_copy(false)
+
+func _on_overwrite_pressed():
+	_do_copy(true)
+
+func _do_copy(overwrite: bool):
 	var player = _get_selected_player()
 	if player == null:
 		status_label.text = '请先选中场景中的 AnimationPlayer 节点'
@@ -62,17 +78,26 @@ func _on_copy_pressed():
 		status_label.text = '源动画与目标动画相同'
 		return
 	var filter = node_path_edit.text.strip_edges()
-	var start = target.get_track_count()
+	var backup = _snapshot_animation(target)
 	var undo_redo = editor_plugin.get_undo_redo()
-	undo_redo.create_action('复制 Tracks 到 ' + str(target_name), 0, player)
-	undo_redo.add_do_method(self, '_do_copy_tracks', target, source, filter)
-	undo_redo.add_undo_method(self, '_undo_copy_tracks', target, start)
+	var verb = '覆盖' if overwrite else '复制'
+	undo_redo.create_action(verb + ' Tracks 到 ' + str(target_name), 0, player)
+	undo_redo.add_do_method(self, '_do_copy_tracks', target, source, filter, overwrite)
+	undo_redo.add_undo_method(self, '_restore_animation', target, backup)
 	undo_redo.commit_action()
 	editor_plugin.get_editor_interface().mark_scene_as_unsaved()
-	status_label.text = '已复制 %d 个 track' % _last_copied
+	status_label.text = ('已' + verb + ' %d 个 track') % _last_copied
 	_refresh_animation_editor(player, target_name)
 
-func _do_copy_tracks(target: Animation, source: Animation, filter: String):
+func _do_copy_tracks(target: Animation, source: Animation, filter: String, overwrite: bool):
+	if overwrite:
+		var paths_to_remove = {}
+		for i in source.get_track_count():
+			if _track_matches(source.track_get_path(i), filter):
+				paths_to_remove[source.track_get_path(i)] = true
+		for i in range(target.get_track_count() - 1, -1, -1):
+			if paths_to_remove.has(target.track_get_path(i)):
+				target.remove_track(i)
 	var copied = 0
 	for i in source.get_track_count():
 		if _track_matches(source.track_get_path(i), filter):
@@ -80,9 +105,17 @@ func _do_copy_tracks(target: Animation, source: Animation, filter: String):
 			copied += 1
 	_last_copied = copied
 
-func _undo_copy_tracks(target: Animation, start: int):
-	while target.get_track_count() > start:
-		target.remove_track(target.get_track_count() - 1)
+func _snapshot_animation(anim: Animation) -> Animation:
+	var backup = Animation.new()
+	for i in anim.get_track_count():
+		anim.copy_track(i, backup)
+	return backup
+
+func _restore_animation(anim: Animation, backup: Animation):
+	while anim.get_track_count() > 0:
+		anim.remove_track(anim.get_track_count() - 1)
+	for i in backup.get_track_count():
+		backup.copy_track(i, anim)
 
 func _track_matches(path: NodePath, filter: String) -> bool:
 	if filter.is_empty():
