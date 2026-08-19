@@ -4,6 +4,7 @@ extends VBoxContainer
 var editor_plugin: EditorPlugin
 var target_player: AnimationPlayer
 var target_animation: String = ""
+var _source_cache: Dictionary = {}
 var _last_copied = 0
 var _last_deleted = 0
 var _dirty = true
@@ -26,9 +27,32 @@ func set_target_player(player: AnimationPlayer):
 	_mark_dirty()
 
 func set_target_animation(name: String):
-	target_animation = name
+	if name != target_animation:
+		_cache_current_pairing()
+		target_animation = name
+		_apply_cached_source()
 	_update_label()
 	_update_delete_filter()
+
+func _cache_current_pairing(index: int = -1):
+	if target_animation.is_empty():
+		return
+	if index < 0:
+		index = source_option.selected
+	if index < 0:
+		return
+	_source_cache[target_animation] = source_option.get_item_text(index)
+
+func _apply_cached_source():
+	if target_animation.is_empty():
+		return
+	var cached = _source_cache.get(target_animation)
+	if cached == null:
+		return
+	for i in source_option.item_count:
+		if source_option.get_item_text(i) == cached:
+			source_option.select(i)
+			return
 
 func _update_label():
 	if target_player == null:
@@ -62,7 +86,8 @@ func _refresh():
 	_update_source_filter()
 	_update_delete_filter()
 
-func _on_source_changed(_index: int):
+func _on_source_changed(index: int):
+	_cache_current_pairing(index)
 	_update_source_filter()
 
 func _update_source_filter():
