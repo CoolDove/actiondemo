@@ -4,18 +4,29 @@ extends VBoxContainer
 var editor_plugin: EditorPlugin
 var target_player: AnimationPlayer
 var _last_copied = 0
+var _last_deleted = 0
 var _dirty = true
 
 @onready var player_label: Label = %PlayerLabel
-@onready var target_option: OptionButton = %TargetOption
+@onready var tabs: TabContainer = %Tabs
 @onready var source_option: OptionButton = %SourceOption
-@onready var node_path_edit: LineEdit = %NodePathEdit
+@onready var target_option: OptionButton = %TargetOption
+@onready var delete_target_option: OptionButton = %DeleteTargetOption
+@onready var source_filter: AnimationTrackFilter = %SourceFilter
+@onready var delete_filter: AnimationTrackFilter = %DeleteFilter
 @onready var status_label: Label = %StatusLabel
+
+func _ready():
+	tabs.set_tab_title(0, '复制 Tracks')
+	tabs.set_tab_title(1, '删除 Tracks')
 
 func setup(plugin: EditorPlugin):
 	editor_plugin = plugin
 	%CopyButton.pressed.connect(_on_copy_pressed)
 	%OverwriteButton.pressed.connect(_on_overwrite_pressed)
+	%DeleteButton.pressed.connect(_on_delete_pressed)
+	%SourceOption.item_selected.connect(_on_source_changed)
+	%DeleteTargetOption.item_selected.connect(_on_delete_target_changed)
 	_mark_dirty()
 
 func set_target_player(player: AnimationPlayer):
@@ -33,15 +44,48 @@ func _mark_dirty():
 func _refresh():
 	if target_player == null:
 		player_label.text = '未选中 AnimationPlayer'
-		target_option.clear()
 		source_option.clear()
+		target_option.clear()
+		delete_target_option.clear()
+		source_filter.set_animation(null)
+		delete_filter.set_animation(null)
 		return
 	player_label.text = '目标: ' + target_player.name
-	target_option.clear()
 	source_option.clear()
+	target_option.clear()
+	delete_target_option.clear()
 	for animation_name in target_player.get_animation_list():
-		target_option.add_item(animation_name)
 		source_option.add_item(animation_name)
+		target_option.add_item(animation_name)
+		delete_target_option.add_item(animation_name)
+	if source_option.item_count > 0:
+		source_option.selected = 0
+	if target_option.item_count > 0:
+		target_option.selected = 0
+	if delete_target_option.item_count > 0:
+		delete_target_option.selected = 0
+	_update_source_filter()
+	_update_delete_filter()
+
+func _on_source_changed(_index: int):
+	_update_source_filter()
+
+func _on_delete_target_changed(_index: int):
+	_update_delete_filter()
+
+func _update_source_filter():
+	if target_player == null or source_option.selected < 0:
+		source_filter.set_animation(null)
+		return
+	var name = source_option.get_item_text(source_option.selected)
+	source_filter.set_animation(target_player.get_animation(name))
+
+func _update_delete_filter():
+	if target_player == null or delete_target_option.selected < 0:
+		delete_filter.set_animation(null)
+		return
+	var name = delete_target_option.get_item_text(delete_target_option.selected)
+	delete_filter.set_animation(target_player.get_animation(name))
 
 func _get_selected_player() -> AnimationPlayer:
 	var selection = editor_plugin.get_editor_interface().get_selection()
@@ -77,7 +121,7 @@ func _do_copy(overwrite: bool):
 	if target == source:
 		status_label.text = '源动画与目标动画相同'
 		return
-	var filter = node_path_edit.text.strip_edges()
+	var filter = source_filter.get_filter()
 	var backup = _snapshot_animation(target)
 	var undo_redo = editor_plugin.get_undo_redo()
 	var verb = '覆盖' if overwrite else '复制'
@@ -87,23 +131,64 @@ func _do_copy(overwrite: bool):
 	undo_redo.commit_action()
 	editor_plugin.get_editor_interface().mark_scene_as_unsaved()
 	status_label.text = ('已' + verb + ' %d 个 track') % _last_copied
+	_update_delete_filter()
 	_refresh_animation_editor(player, target_name)
 
 func _do_copy_tracks(target: Animation, source: Animation, filter: String, overwrite: bool):
 	if overwrite:
 		var paths_to_remove = {}
 		for i in source.get_track_count():
-			if _track_matches(source.track_get_path(i), filter):
+			if AnimationTrackFilter.matches_path(source.track_get_path(i), filter):
 				paths_to_remove[source.track_get_path(i)] = true
 		for i in range(target.get_track_count() - 1, -1, -1):
 			if paths_to_remove.has(target.track_get_path(i)):
 				target.remove_track(i)
 	var copied = 0
 	for i in source.get_track_count():
-		if _track_matches(source.track_get_path(i), filter):
+		if AnimationTrackFilter.matches_path(source.track_get_path(i), filter):
 			source.copy_track(i, target)
 			copied += 1
 	_last_copied = copied
+
+func _on_delete_pressed():
+	var player = _get_selected_player()
+	if player == null:
+		status_label.text = '请先选中场景中的 AnimationPlayer 节点'
+		return
+	if delete_target_option.selected < 0:
+		status_label.text = '没有可用的目标动画'
+		return
+	var target_name = delete_target_option.get_item_text(delete_target_option.selected)
+	var target = player.get_animation(target_name)
+	if target == null:
+		status_label.text = '无法获取动画资源'
+		return
+	var filter = delete_filter.get_filter()
+	var matched = 0
+	for i in target.get_track_count():
+		if AnimationTrackFilter.matches_path(target.track_get_path(i), filter):
+			matched += 1
+	if matched == 0:
+		status_label.text = '没有匹配的 track'
+		return
+	var backup = _snapshot_animation(target)
+	var undo_redo = editor_plugin.get_undo_redo()
+	undo_redo.create_action('删除 Tracks 从 ' + str(target_name), 0, player)
+	undo_redo.add_do_method(self, '_do_delete_tracks', target, filter)
+	undo_redo.add_undo_method(self, '_restore_animation', target, backup)
+	undo_redo.commit_action()
+	editor_plugin.get_editor_interface().mark_scene_as_unsaved()
+	status_label.text = '已删除 %d 个 track' % _last_deleted
+	_update_delete_filter()
+	_refresh_animation_editor(player, target_name)
+
+func _do_delete_tracks(target: Animation, filter: String):
+	var removed = 0
+	for i in range(target.get_track_count() - 1, -1, -1):
+		if AnimationTrackFilter.matches_path(target.track_get_path(i), filter):
+			target.remove_track(i)
+			removed += 1
+	_last_deleted = removed
 
 func _snapshot_animation(anim: Animation) -> Animation:
 	var backup = Animation.new()
@@ -116,12 +201,6 @@ func _restore_animation(anim: Animation, backup: Animation):
 		anim.remove_track(anim.get_track_count() - 1)
 	for i in backup.get_track_count():
 		backup.copy_track(i, anim)
-
-func _track_matches(path: NodePath, filter: String) -> bool:
-	if filter.is_empty():
-		return true
-	var node = str(path).split(':')[0]
-	return node == filter or node.begins_with(filter + '/')
 
 func _refresh_animation_editor(player: AnimationPlayer, anim_name: StringName):
 	player.set_current_animation(&'')
