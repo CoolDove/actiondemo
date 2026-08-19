@@ -23,13 +23,13 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 current_tab = 0
-tab_0/title = "复制 Tracks"
-tab_1/title = "删除 Tracks"
+tab_0/title = "> 复制"
+tab_1/title = "> 删除"
 
 [node name="CopyTab" type="VBoxContainer" parent="Tabs" unique_id=210000002]
 layout_mode = 2
 metadata/_tab_index = 0
-metadata/_tab_name = "复制 Tracks"
+metadata/_tab_name = "> 复制"
 
 [node name="SourceAnimation" type="VBoxContainer" parent="Tabs/CopyTab" unique_id=100724415]
 layout_mode = 2
@@ -83,7 +83,7 @@ text = "覆盖"
 visible = false
 layout_mode = 2
 metadata/_tab_index = 1
-metadata/_tab_name = "删除 Tracks"
+metadata/_tab_name = "> 删除"
 
 [node name="DeleteAnimation" type="VBoxContainer" parent="Tabs/DeleteTab" unique_id=210000005]
 layout_mode = 2

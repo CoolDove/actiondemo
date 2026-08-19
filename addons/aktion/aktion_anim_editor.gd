@@ -16,10 +16,6 @@ var _dirty = true
 @onready var delete_filter: AnimationTrackFilter = %DeleteFilter
 @onready var status_label: Label = %StatusLabel
 
-func _ready():
-	tabs.set_tab_title(0, '复制 Tracks')
-	tabs.set_tab_title(1, '删除 Tracks')
-
 func setup(plugin: EditorPlugin):
 	editor_plugin = plugin
 	%CopyButton.pressed.connect(_on_copy_pressed)
@@ -122,11 +118,13 @@ func _do_copy(overwrite: bool):
 		status_label.text = '源动画与目标动画相同'
 		return
 	var filter = source_filter.get_filter()
+	var regex = source_filter.get_regex()
+	var case_sensitive = source_filter.get_case_sensitive()
 	var backup = _snapshot_animation(target)
 	var undo_redo = editor_plugin.get_undo_redo()
 	var verb = '覆盖' if overwrite else '复制'
 	undo_redo.create_action(verb + ' Tracks 到 ' + str(target_name), 0, player)
-	undo_redo.add_do_method(self, '_do_copy_tracks', target, source, filter, overwrite)
+	undo_redo.add_do_method(self, '_do_copy_tracks', target, source, filter, regex, case_sensitive, overwrite)
 	undo_redo.add_undo_method(self, '_restore_animation', target, backup)
 	undo_redo.commit_action()
 	editor_plugin.get_editor_interface().mark_scene_as_unsaved()
@@ -134,18 +132,18 @@ func _do_copy(overwrite: bool):
 	_update_delete_filter()
 	_refresh_animation_editor(player, target_name)
 
-func _do_copy_tracks(target: Animation, source: Animation, filter: String, overwrite: bool):
+func _do_copy_tracks(target: Animation, source: Animation, filter: String, regex: bool, case_sensitive: bool, overwrite: bool):
 	if overwrite:
 		var paths_to_remove = {}
 		for i in source.get_track_count():
-			if AnimationTrackFilter.matches_path(source.track_get_path(i), filter):
+			if AnimationTrackFilter.matches_path(source.track_get_path(i), filter, regex, case_sensitive):
 				paths_to_remove[source.track_get_path(i)] = true
 		for i in range(target.get_track_count() - 1, -1, -1):
 			if paths_to_remove.has(target.track_get_path(i)):
 				target.remove_track(i)
 	var copied = 0
 	for i in source.get_track_count():
-		if AnimationTrackFilter.matches_path(source.track_get_path(i), filter):
+		if AnimationTrackFilter.matches_path(source.track_get_path(i), filter, regex, case_sensitive):
 			source.copy_track(i, target)
 			copied += 1
 	_last_copied = copied
@@ -164,9 +162,11 @@ func _on_delete_pressed():
 		status_label.text = '无法获取动画资源'
 		return
 	var filter = delete_filter.get_filter()
+	var regex = delete_filter.get_regex()
+	var case_sensitive = delete_filter.get_case_sensitive()
 	var matched = 0
 	for i in target.get_track_count():
-		if AnimationTrackFilter.matches_path(target.track_get_path(i), filter):
+		if AnimationTrackFilter.matches_path(target.track_get_path(i), filter, regex, case_sensitive):
 			matched += 1
 	if matched == 0:
 		status_label.text = '没有匹配的 track'
@@ -174,7 +174,7 @@ func _on_delete_pressed():
 	var backup = _snapshot_animation(target)
 	var undo_redo = editor_plugin.get_undo_redo()
 	undo_redo.create_action('删除 Tracks 从 ' + str(target_name), 0, player)
-	undo_redo.add_do_method(self, '_do_delete_tracks', target, filter)
+	undo_redo.add_do_method(self, '_do_delete_tracks', target, filter, regex, case_sensitive)
 	undo_redo.add_undo_method(self, '_restore_animation', target, backup)
 	undo_redo.commit_action()
 	editor_plugin.get_editor_interface().mark_scene_as_unsaved()
@@ -182,10 +182,10 @@ func _on_delete_pressed():
 	_update_delete_filter()
 	_refresh_animation_editor(player, target_name)
 
-func _do_delete_tracks(target: Animation, filter: String):
+func _do_delete_tracks(target: Animation, filter: String, regex: bool, case_sensitive: bool):
 	var removed = 0
 	for i in range(target.get_track_count() - 1, -1, -1):
-		if AnimationTrackFilter.matches_path(target.track_get_path(i), filter):
+		if AnimationTrackFilter.matches_path(target.track_get_path(i), filter, regex, case_sensitive):
 			target.remove_track(i)
 			removed += 1
 	_last_deleted = removed

@@ -3,8 +3,8 @@
 [ext_resource type="Script" uid="uid://b3kq7wsm0nd1a" path="res://addons/aktion/animation_track_filter.gd" id="1_filter"]
 
 [node name="Animation Track Filter" type="VBoxContainer" unique_id=209350711]
-offset_right = 210.0
-offset_bottom = 177.0
+offset_right = 244.0
+offset_bottom = 164.0
 script = ExtResource("1_filter")
 
 [node name="TitleLabel" type="HBoxContainer" parent="." unique_id=53401236]
@@ -15,18 +15,37 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "节点路径过滤（留空 = 全部）"
+text_overrun_behavior = 3
 
 [node name="CountLabel" type="Label" parent="TitleLabel" unique_id=209350714]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 8
-text = "0"
+text = "0 个 track"
 horizontal_alignment = 2
 
-[node name="FilterEdit" type="LineEdit" parent="." unique_id=209350713]
+[node name="EditLine" type="HBoxContainer" parent="." unique_id=33844781]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="FilterEdit" type="LineEdit" parent="EditLine" unique_id=209350713]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 placeholder_text = "如 Armature/Skeleton3D"
+
+[node name="CheckBox_Regex" type="CheckBox" parent="EditLine" unique_id=1290485795]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Regex Mode (Treat the track path as a string.)"
+text = "R"
+
+[node name="CheckBox_CaseSensitive" type="CheckBox" parent="EditLine" unique_id=1966256500]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Case-sensitive (Only when Regex Mode is on.)"
+disabled = true
+text = "C"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=209350715]
 layout_mode = 2

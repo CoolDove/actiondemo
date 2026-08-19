@@ -11,7 +11,7 @@ Godot 编辑器插件，提供 AnimationPlayer 的动画 track 批处理工具�
 | `aktion_anim_editor.gd` | 主面板逻辑（复制/覆盖/删除、撤销、动画列表刷新） |
 | `aktion_anim_editor.tscn` | 主面板 UI：PlayerLabel + TabContainer(复制/删除) + StatusLabel |
 | `animation_track_filter.gd` | 可复用组件 `AnimationTrackFilter`：路径过滤输入 + 匹配 track 列表 |
-| `animation_track_filter.tscn` | 组件 UI：FilterLabel + FilterEdit + CountLabel + ScrollContainer/TrackList |
+| `animation_track_filter.tscn` | 组件 UI：FilterLabel + FilterEdit + CheckBox_Regex/CheckBox_CaseSensitive + CountLabel + ScrollContainer/TrackList |
 | `aktion_animation.gd` | `class_name AktionAnimation extends Animation`，自定义动画资源类型占位（暂无逻辑） |
 
 每个 `.gd` 都有同名的 `.gd.uid` 伴生文件（Godot 生成，勿删）。`.tscn` 通过文件头 `uid="uid://..."` 标识，无独立 `.uid` 文件。
@@ -34,14 +34,16 @@ Godot 编辑器插件，提供 AnimationPlayer 的动画 track 批处理工具�
 
 ### 可复用组件 `AnimationTrackFilter`
 - `class_name AnimationTrackFilter extends VBoxContainer`。
-- 对外接口：`set_animation(anim)`（绑定要过滤的动画）、`get_filter() -> String`（去空白后的过滤串）、`static matches_path(path, filter) -> bool`（纯函数，匹配逻辑唯一出处）。
-- 内部节点（`FilterEdit`/`TrackList`/`CountLabel`）都设 `unique_name_in_owner`，脚本里用 `%FilterEdit`/`%TrackList`/`%CountLabel` 访问。虽然本组件在同场景被实例化两次（SourceFilter / DeleteFilter），但 `%` 在子场景自身脚本内按实例作用域解析，两个实例互不冲突；只有从父场景用 `%` 访问子场景内部节点才会歧义。父场景只通过 `%SourceFilter`/`%DeleteFilter` 拿到实例根，再调用 `get_filter()` 等方法，不直接触碰内部节点。
+- 对外接口：`set_animation(anim)`（绑定要过滤的动画）、`get_filter() -> String`（去空白后的过滤串）、`get_regex() -> bool`、`get_case_sensitive() -> bool`、`static matches_path(path, filter, regex=false, case_sensitive=false) -> bool`（纯函数，匹配逻辑唯一出处）。
+- 匹配语义：`filter` 为空 = 匹配全部。非 regex 模式 = 对节点路径（`path` 去掉 `:property` 后缀）做前缀匹配（`node == filter` 或 `node.begins_with(filter + '/')`）。regex 模式 = 用 `RegEx.search` 对完整 `str(path)` 匹配；`case_sensitive=false` 时在 pattern 前加 PCRE 内联标志 `(?i)`。regex 无效时 `matches_path` 返回 false。
+- 开关联动：`CheckBox_Regex` 打开时自动把 `CheckBox_CaseSensitive` 置 false；case-sensitive 只在 regex 模式下有意义，regex 关闭时该复选框 `disabled`。两个复选框 toggled 都会 `_mark_dirty()` 触发重刷。
+- 内部节点（`FilterEdit`/`CheckBox_Regex`/`CheckBox_CaseSensitive`/`TrackList`/`CountLabel`）都设 `unique_name_in_owner`，脚本里用 `%FilterEdit`/`%CheckBox_Regex`/`%CheckBox_CaseSensitive`/`%TrackList`/`%CountLabel` 访问。虽然本组件在同场景被实例化两次（SourceFilter / DeleteFilter），但 `%` 在子场景自身脚本内按实例作用域解析，两个实例互不冲突；只有从父场景用 `%` 访问子场景内部节点才会歧义。父场景只通过 `%SourceFilter`/`%DeleteFilter` 拿到实例根，再调用 `get_filter()` 等方法，不直接触碰内部节点。
 - 列表动态生成 `Label`（无 owner，不会写入 .tscn），每次 `_refresh` 先 `_clear_list()` 再重建。
 
 ### 核心功能
-- **复制 / 覆盖**（`_do_copy(overwrite)`）：源动画 = `source_option`，目标动画 = `target_option`，过滤串来自 `source_filter.get_filter()`。覆盖模式下先把目标动画中与源 track 同路径（同名）的 track 删掉再复制。
-- **删除**（`_on_delete_pressed`）：目标动画 = `delete_target_option`，过滤串来自 `delete_filter.get_filter()`，反向遍历删除匹配 track（避免索引偏移）。
-- **撤销**：操作前对目标动画做整份快照 `_snapshot_animation`（`Animation.new()` + 逐个 `copy_track`），`add_undo_method(_restore_animation, target, backup)` 通过清空 + 重拷还原，保证 track 顺序与内容都恢复。do 方法通过 `undo_redo.add_do_method` 传参（`filter`/`overwrite` 等可序列化值），重做时重新计算匹配。
+- **复制 / 覆盖**（`_do_copy(overwrite)`）：源动画 = `source_option`，目标动画 = `target_option`，过滤参数来自 `source_filter.get_filter()/get_regex()/get_case_sensitive()`。覆盖模式下先把目标动画中与源 track 同路径（同名）的 track 删掉再复制。
+- **删除**（`_on_delete_pressed`）：目标动画 = `delete_target_option`，过滤参数来自 `delete_filter.get_filter()/get_regex()/get_case_sensitive()`，反向遍历删除匹配 track（避免索引偏移）。
+- **撤销**：操作前对目标动画做整份快照 `_snapshot_animation`（`Animation.new()` + 逐个 `copy_track`），`add_undo_method(_restore_animation, target, backup)` 通过清空 + 重拷还原，保证 track 顺序与内容都恢复。do 方法通过 `undo_redo.add_do_method` 传参（`filter`/`regex`/`case_sensitive`/`overwrite` 等可序列化值），重做时重新计算匹配。
 - 状态栏用 `_last_copied` / `_last_deleted` 记录最近一次数量；操作后 `mark_scene_as_unsaved()` + `_refresh_animation_editor()`（`set_current_animation('')` 再设回，刷新动画编辑器显示）。
 
 ## 关键约定与模式
