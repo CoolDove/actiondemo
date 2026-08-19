@@ -11,17 +11,20 @@ script = ExtResource("1_filter")
 layout_mode = 2
 
 [node name="FilterLabel" type="Label" parent="TitleLabel" unique_id=209350712]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "节点路径过滤（留空 = 全部）"
 
 [node name="CountLabel" type="Label" parent="TitleLabel" unique_id=209350714]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 8
 text = "0"
 horizontal_alignment = 2
 
 [node name="FilterEdit" type="LineEdit" parent="." unique_id=209350713]
+unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "如 Armature/Skeleton3D"
 
@@ -30,6 +33,7 @@ layout_mode = 2
 size_flags_vertical = 3
 
 [node name="TrackList" type="VBoxContainer" parent="ScrollContainer" unique_id=209350716]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3

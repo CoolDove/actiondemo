@@ -33,6 +33,7 @@ metadata/_tab_name = "复制 Tracks"
 
 [node name="SourceAnimation" type="VBoxContainer" parent="Tabs/CopyTab" unique_id=100724415]
 layout_mode = 2
+size_flags_vertical = 3
 
 [node name="SourceLabel" type="Label" parent="Tabs/CopyTab/SourceAnimation" unique_id=835652672]
 layout_mode = 2
@@ -51,7 +52,7 @@ size_flags_vertical = 3
 
 [node name="DestinationAnimation" type="VBoxContainer" parent="Tabs/CopyTab" unique_id=1982538879]
 layout_mode = 2
-size_flags_vertical = 3
+size_flags_vertical = 0
 
 [node name="TargetLabel" type="Label" parent="Tabs/CopyTab/DestinationAnimation" unique_id=309932023]
 layout_mode = 2

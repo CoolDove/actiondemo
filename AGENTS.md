@@ -28,6 +28,7 @@ Godot 4.7 3D action-game exploration project. Early-stage; editor-driven workflo
 
 - **Minimize scope.** Keep changes to the smallest set of files necessary. If a task feels too large to complete within a controlled change surface, pause and discuss splitting it with the user before proceeding.
 - **Never use `:=` for variable type inference.** Write `var foo = bar()` instead of `var foo := bar()`. However, if existing code already uses `:=`, treat it as intentional — do not rewrite it to `=`.
+- **Bind nodes to logic with Unique Name.** Mark every node a script references with `unique_name_in_owner` and access it with `%NodeName` in GDScript, not `$` relative paths. Unique names survive node renames/reparenting. For reusable sub-scenes, `%` resolves per-instance inside the sub-scene's own script (no cross-instance name conflicts); only the instanced root is exposed to the parent via `%`.
 
 ## Running the project
 

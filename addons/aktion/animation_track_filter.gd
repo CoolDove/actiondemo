@@ -5,9 +5,9 @@ extends VBoxContainer
 var _animation: Animation
 var _dirty = true
 
-@onready var filter_edit: LineEdit = $FilterEdit
-@onready var track_list: VBoxContainer = $ScrollContainer/TrackList
-@onready var count_label: Label = $CountLabel
+@onready var filter_edit: LineEdit = %FilterEdit
+@onready var track_list: VBoxContainer = %TrackList
+@onready var count_label: Label = %CountLabel
 
 func _ready():
 	filter_edit.text_changed.connect(_on_text_changed)

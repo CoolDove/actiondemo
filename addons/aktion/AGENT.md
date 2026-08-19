@@ -35,7 +35,7 @@ Godot 编辑器插件，提供 AnimationPlayer 的动画 track 批处理工具�
 ### 可复用组件 `AnimationTrackFilter`
 - `class_name AnimationTrackFilter extends VBoxContainer`。
 - 对外接口：`set_animation(anim)`（绑定要过滤的动画）、`get_filter() -> String`（去空白后的过滤串）、`static matches_path(path, filter) -> bool`（纯函数，匹配逻辑唯一出处）。
-- 内部节点用 `$FilterEdit`、`$ScrollContainer/TrackList`、`$CountLabel` **相对路径**访问，不用 `%` 且不设 `unique_name_in_owner`——因为本组件在同场景被实例化两次（SourceFilter / DeleteFilter），用 `%` 会重名冲突。
+- 内部节点（`FilterEdit`/`TrackList`/`CountLabel`）都设 `unique_name_in_owner`，脚本里用 `%FilterEdit`/`%TrackList`/`%CountLabel` 访问。虽然本组件在同场景被实例化两次（SourceFilter / DeleteFilter），但 `%` 在子场景自身脚本内按实例作用域解析，两个实例互不冲突；只有从父场景用 `%` 访问子场景内部节点才会歧义。父场景只通过 `%SourceFilter`/`%DeleteFilter` 拿到实例根，再调用 `get_filter()` 等方法，不直接触碰内部节点。
 - 列表动态生成 `Label`（无 owner，不会写入 .tscn），每次 `_refresh` 先 `_clear_list()` 再重建。
 
 ### 核心功能
@@ -51,6 +51,9 @@ Godot 编辑器插件，提供 AnimationPlayer 的动画 track 批处理工具�
 
 ### 撤销用整份快照，而非逐条逆操作
 复制/覆盖/删除都可能改 track 顺序与内容，用「快照备份 + 清空重放」最简单可靠；不要在 do 方法里依赖 UI 状态，一切匹配都通过 `AnimationTrackFilter.matches_path` 纯函数重算。
+
+### 节点绑定默认用 Unique Name（`%`）
+脚本要访问的节点一律勾选 `unique_name_in_owner`，GDScript 里用 `%NodeName` 访问，不用 `$` 相对路径。好处：节点改名/改层级/重挂父节点时引用不丢失。可复用子场景（如 `AnimationTrackFilter`）的内部节点在自身脚本里用 `%` 按实例作用域解析，多实例互不冲突；父场景只通过 `%InstanceRoot` 拿实例根。
 
 ## 坑（务必记住）
 
