@@ -16,33 +16,39 @@ custom_minimum_size = Vector2(20, 0)
 layout_mode = 2
 autowrap_mode = 3
 
-[node name="TargetLabel" type="Label" parent="." unique_id=309932023]
+[node name="SourceAnimation" type="VBoxContainer" parent="." unique_id=100724415]
 layout_mode = 2
-text = "目标动画"
 
-[node name="TargetOption" type="OptionButton" parent="." unique_id=39126667]
+[node name="SourceLabel" type="Label" parent="SourceAnimation" unique_id=835652672]
+layout_mode = 2
+text = "源动画（复制自）"
+
+[node name="SourceOption" type="OptionButton" parent="SourceAnimation" unique_id=1445086392]
 unique_name_in_owner = true
 layout_mode = 2
+
+[node name="NodeLabel" type="Label" parent="SourceAnimation" unique_id=1140651686]
+layout_mode = 2
+text = "节点路径（留空 = 全部）"
+
+[node name="NodePathEdit" type="LineEdit" parent="SourceAnimation" unique_id=884326695]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "如 Armature/Skeleton3D"
 
 [node name="HSeparator" type="HSeparator" parent="." unique_id=1298945322]
 layout_mode = 2
 
-[node name="SourceLabel" type="Label" parent="." unique_id=835652672]
+[node name="DestinationAnimation" type="VBoxContainer" parent="." unique_id=1982538879]
 layout_mode = 2
-text = "源动画（复制自）"
 
-[node name="SourceOption" type="OptionButton" parent="." unique_id=1445086392]
+[node name="TargetLabel" type="Label" parent="DestinationAnimation" unique_id=309932023]
+layout_mode = 2
+text = "目标动画"
+
+[node name="TargetOption" type="OptionButton" parent="DestinationAnimation" unique_id=39126667]
 unique_name_in_owner = true
 layout_mode = 2
-
-[node name="NodeLabel" type="Label" parent="." unique_id=1140651686]
-layout_mode = 2
-text = "节点路径（留空 = 全部）"
-
-[node name="NodePathEdit" type="LineEdit" parent="." unique_id=884326695]
-unique_name_in_owner = true
-layout_mode = 2
-placeholder_text = "如 Armature/Skeleton3D"
 
 [node name="CopyButton" type="Button" parent="." unique_id=1307373569]
 unique_name_in_owner = true
