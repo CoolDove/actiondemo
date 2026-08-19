@@ -22,12 +22,11 @@ autowrap_mode = 3
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-current_tab = 1
+current_tab = 0
 tab_0/title = "复制 Tracks"
 tab_1/title = "删除 Tracks"
 
 [node name="CopyTab" type="VBoxContainer" parent="Tabs" unique_id=210000002]
-visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 metadata/_tab_name = "复制 Tracks"
@@ -37,11 +36,13 @@ layout_mode = 2
 
 [node name="SourceLabel" type="Label" parent="Tabs/CopyTab/SourceAnimation" unique_id=835652672]
 layout_mode = 2
+size_flags_vertical = 0
 text = "源动画（复制自）"
 
 [node name="SourceOption" type="OptionButton" parent="Tabs/CopyTab/SourceAnimation" unique_id=1445086392]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_vertical = 0
 
 [node name="SourceFilter" parent="Tabs/CopyTab/SourceAnimation" unique_id=210000003 instance=ExtResource("2_filter")]
 unique_name_in_owner = true
@@ -78,6 +79,7 @@ size_flags_horizontal = 3
 text = "覆盖"
 
 [node name="DeleteTab" type="VBoxContainer" parent="Tabs" unique_id=210000004]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 1
 metadata/_tab_name = "删除 Tracks"
